@@ -221,13 +221,9 @@ function weight = sho_internal(qh, qk, ql, en, obj, res_pars, varargin)
     % Use damped SHO model to give intensity:
     weight = zeros(numel(qh),1);
     for ii=1:numel(e)
-        try
         ip = find((e{ii} > 0) .* (~isnan(sf{ii})));
         weight(ip) = weight(ip) + (4.*gam.*e{ii}(ip).*sf{ii}(ip)) ./ ...
             (pi.*((en(ip).^2-e{ii}(ip).^2).^2 + 4.*(gam.*en(ip)).^2));
-        catch prob
-            dosomething(prob);
-        end
     end
     weight = amp .* Bose .* weight;
 end
