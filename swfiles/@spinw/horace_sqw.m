@@ -107,9 +107,21 @@ scale_factor = 1;
 % Transforms the input parameters
 pars = param.partrans(pars);
 
+% Make sure that qh, qk, ql, en are column vectors:
+reshaped=false;
+shapein = size(qh);
+if size(qh,1) ~= numel(qh)
+    reshaped = true;
+    qh = qh(:);
+    qk = qk(:);
+    ql = ql(:);
+    en = en(:);
+end
+    
+
 % Transforms input coordinates if needed
 if sum(sum(abs(param.coordtrans - eye(4)))) > 0
-    qc = [qh(:) qk(:) ql(:) en(:)];
+    qc = [qh qk ql en];
     qh = sum(bsxfun(@times, param.coordtrans(1,:), qc),2);
     qk = sum(bsxfun(@times, param.coordtrans(2,:), qc),2);
     ql = sum(bsxfun(@times, param.coordtrans(3,:), qc),2);
@@ -152,6 +164,10 @@ else
 end
 
 weight = disp2sqw(qh, qk, ql, en, @obj.horace, {model_pars varargin{:}}, fwhm);
+
+if reshaped
+    weight = reshape(weight, shapein);
+end
 
 if scale_factor ~= 1
     weight = weight * scale_factor;
@@ -205,9 +221,13 @@ function weight = sho_internal(qh, qk, ql, en, obj, res_pars, varargin)
     % Use damped SHO model to give intensity:
     weight = zeros(numel(qh),1);
     for ii=1:numel(e)
+        try
         ip = find((e{ii} > 0) .* (~isnan(sf{ii})));
         weight(ip) = weight(ip) + (4.*gam.*e{ii}(ip).*sf{ii}(ip)) ./ ...
             (pi.*((en(ip).^2-e{ii}(ip).^2).^2 + 4.*(gam.*en(ip)).^2));
+        catch prob
+            dosomething(prob);
+        end
     end
     weight = amp .* Bose .* weight;
 end
