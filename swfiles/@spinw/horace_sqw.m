@@ -151,6 +151,10 @@ if ischar(param.resfun)
                 .* cellfun(@(x) ~iscell(x), varargin));
         args = varargin([1:(resfun_id-1) (resfun_id+2):numel(varargin)]);
         weight = sho_internal(qh, qk, ql, en, obj, res_pars, model_pars, args{:});
+
+        if reshaped
+            weight = reshape(weight, shapein);
+        end
         return
     else
         error('horace_sqw:UnknowResFun', ...
